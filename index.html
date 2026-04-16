@@ -1,1 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Silent Emergency Alert System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
+<!-- Toast -->
+<div class="toast" id="toast">✓ LOCATION SHARED</div>
+
+<!-- Alert Overlay -->
+<div class="alert-timer" id="alertOverlay">
+  <div class="alert-title">⚠ SOS ACTIVE</div>
+  <div class="timer-ring">
+    <svg width="180" height="180" viewBox="0 0 180 180">
+      <circle class="timer-circle-bg" cx="90" cy="90" r="80"/>
+      <circle class="timer-circle" id="timerCircle" cx="90" cy="90" r="80"/>
+    </svg>
+    <div class="timer-text">
+      <div class="timer-count" id="timerCount">10</div>
+      <div class="timer-unit">SECONDS</div>
+    </div>
+  </div>
+  <div class="alert-msg">Emergency alert will be sent to all contacts. Press CANCEL to abort.</div>
+  <button class="cancel-alert-btn" onclick="cancelAlert()">✕ CANCEL</button>
+</div>
+
+<div class="phone-frame">
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span class="time" id="clockTime">00:00</span>
+    <div class="status-icons">
+      <span>📶</span>
+      <span>🛜</span>
+      <span>🔋</span>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="app-header">
+    <div class="header-left">
+      <div class="shield-icon">🛡</div>
+      <div>
+        <div class="app-title">SafeAlert</div>
+        <div class="app-subtitle">SILENT EMERGENCY SYSTEM</div>
+      </div>
+    </div>
+    <div class="status-badge">● ARMED</div>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="scroll-content">
+
+    <!-- Alert Status Banner -->
+    <div class="alert-banner" id="alertBanner">
+      <div class="banner-dot"></div>
+      <span id="bannerText">SYSTEM READY · ALL CONTACTS ACTIVE</span>
+    </div>
+
+    <!-- Map Section -->
+    <div class="map-section">
+      <div class="map-bg">
+        <div class="map-grid"></div>
+        <div class="map-roads">
+          <div class="road h r1"></div>
+          <div class="road h r2"></div>
+          <div class="road h thick"></div>
+          <div class="road v r3"></div>
+          <div class="road v r4"></div>
+          <div class="road v thick"></div>
+        </div>
+        <!-- Random map dots -->
+        <div class="map-dot" style="top:25%;left:15%"></div>
+        <div class="map-dot" style="top:60%;left:70%"></div>
+        <div class="map-dot" style="top:35%;left:80%"></div>
+        <div class="map-dot" style="top:75%;left:30%"></div>
+
+        <!-- Pulse rings -->
+        <div class="map-pulse-container">
+          <div class="pulse-ring"></div>
+          <div class="pulse-ring"></div>
+          <div class="pulse-ring"></div>
+          <div class="pulse-ring"></div>
+          <div class="map-center-dot"></div>
+        </div>
+
+        <div class="map-scan-line"></div>
+
+        <div class="map-overlay-label">
+          <span>📍 LIVE TRACKING</span>
+          <span class="map-coords" id="mapCoords">25.8467° N, 80.9462° E</span> 
+           <p id="mapCoords">Getting location...</p>
+          
+        </div>
+        <div class="map-accuracy">
+          ACC: ±4m<br>GPS: LOCK
+        </div>
+      </div>
+    </div>
+
+
+    <!-- SOS Button -->
+    <div class="sos-section">
+      <div class="sos-wrapper">
+        <div class="sos-ring"></div>
+        <div class="sos-ring"></div>
+        <div class="sos-ring"></div>
+        <button class="sos-btn" id="sosBtn" onclick="triggerSOS()">
+          <div class="sos-icon">🆘</div>
+          <div class="sos-label">SOS</div>
+          <div class="sos-sublabel">HOLD TO ACTIVATE</div>
+        </button>
+      </div>
+      <div class="sos-hint">TAP FOR COUNTDOWN · HOLD 3s FOR INSTANT</div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <div class="action-btn police" onclick="callEmergency('POLICE')">
+        <div class="action-icon">🚔</div>
+        <div class="action-label">Police</div>
+      </div>
+      <div class="action-btn ambulance" onclick="callEmergency('AMBULANCE')">
+        <div class="action-icon">🚑</div>
+        <div class="action-label">Medic</div>
+      </div>
+      <div class="action-btn fire" onclick="callEmergency('FIRE')">
+        <div class="action-icon">🚒</div>
+        <div class="action-label">Fire</div>
+      </div>
+    </div>
+
+    <!-- API Status -->
+    <div class="api-row">
+      <div class="api-status-left">
+        <div class="api-dot"></div>
+        <span>API CONNECTED</span>
+      </div>
+      <div class="api-endpoint">POST /v1/alerts/dispatch</div>
+    </div>
+
+    <!-- Toggle Switches -->
+    <div class="toggles-section">
+      <div class="section-header">
+        <span class="section-icon">⚙</span>
+        <span class="section-title">Alert Settings</span>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-icon-box">📍</div>
+          <div class="toggle-text">
+            <div class="label">Share Location</div>
+            <div class="sublabel">GPS · REAL-TIME</div>
+          </div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" checked onchange="toggleFeature('Location Sharing', this.checked)">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-icon-box">🔕</div>
+          <div class="toggle-text">
+            <div class="label">Silent Mode</div>
+            <div class="sublabel">NO SOUND · STEALTH</div>
+          </div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" checked onchange="toggleFeature('Silent Mode', this.checked)">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-icon-box">💬</div>
+          <div class="toggle-text">
+            <div class="label">Auto SMS</div>
+            <div class="sublabel">SEND ON TRIGGER</div>
+          </div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" checked onchange="toggleFeature('Auto SMS', this.checked)">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-icon-box">🎙</div>
+          <div class="toggle-text">
+            <div class="label">Audio Recording</div>
+            <div class="sublabel">BACKGROUND MIC</div>
+          </div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" onchange="toggleFeature('Audio Recording', this.checked)">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-icon-box">🔔</div>
+          <div class="toggle-text">
+            <div class="label">Guardian Alert</div>
+            <div class="sublabel">NOTIFY CONTACTS</div>
+          </div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" checked onchange="toggleFeature('Guardian Alert', this.checked)">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Emergency Contacts -->
+    <div class="contacts-section">
+      <div class="section-header">
+        <span class="section-icon">👥</span>
+        <span class="section-title">Emergency Contacts</span>
+      </div>
+
+      <div class="contact-row" onclick="alertContact('Priya')">
+        <div class="contact-avatar c1">PS</div>
+        <div class="contact-info">
+          <div class="contact-name">Priya Sharma</div>
+          <div class="contact-relation">PRIMARY · FAMILY</div>
+        </div>
+        <div class="contact-call-btn">📞</div>
+      </div>
+
+      <div class="contact-row" onclick="alertContact('Ravi')">
+        <div class="contact-avatar c2">RK</div>
+        <div class="contact-info">
+          <div class="contact-name">Ravi Kumar</div>
+          <div class="contact-relation">SECONDARY · FRIEND</div>
+        </div>
+        <div class="contact-call-btn">📞</div>
+      </div>
+
+      <div class="contact-row" onclick="alertContact('Anjali')">
+        <div class="contact-avatar c3">AM</div>
+        <div class="contact-info">
+          <div class="contact-name">Anjali Mishra</div>
+          <div class="contact-relation">TERTIARY · COLLEAGUE</div>
+        </div>
+        <div class="contact-call-btn">📞</div>
+      </div>
+    </div>
+
+    <!-- Signal Cards -->
+    <div class="signal-section">
+      <div class="signal-card">
+        <div class="signal-label">Network</div>
+        <div class="signal-value" style="color: var(--accent-green);">4G</div>
+        <div class="signal-bars">
+          <div class="bar b1 active"></div>
+          <div class="bar b2 active"></div>
+          <div class="bar b3 active"></div>
+          <div class="bar b4 active"></div>
+          <div class="bar b5"></div>
+        </div>
+      </div>
+      <div class="signal-card">
+        <div class="signal-label">GPS Signal</div>
+        <div class="signal-value" style="color: var(--accent-blue);">LOCK</div>
+        <div class="signal-bars">
+          <div class="bar b1 active" style="background:var(--accent-blue);box-shadow:0 0 6px var(--accent-blue)"></div>
+          <div class="bar b2 active" style="background:var(--accent-blue);box-shadow:0 0 6px var(--accent-blue)"></div>
+          <div class="bar b3 active" style="background:var(--accent-blue);box-shadow:0 0 6px var(--accent-blue)"></div>
+          <div class="bar b4 active" style="background:var(--accent-blue);box-shadow:0 0 6px var(--accent-blue)"></div>
+          <div class="bar b5 active" style="background:var(--accent-blue);box-shadow:0 0 6px var(--accent-blue)"></div>
+        </div>
+      </div>
+      <div class="signal-card">
+        <div class="signal-label">Battery</div>
+        <div class="signal-value" style="color: var(--accent-yellow);">78%</div>
+        <div class="signal-bars">
+          <div class="bar b1 active" style="background:var(--accent-yellow);box-shadow:0 0 6px var(--accent-yellow)"></div>
+          <div class="bar b2 active" style="background:var(--accent-yellow);box-shadow:0 0 6px var(--accent-yellow)"></div>
+          <div class="bar b3 active" style="background:var(--accent-yellow);box-shadow:0 0 6px var(--accent-yellow)"></div>
+          <div class="bar b4"></div>
+          <div class="bar b5"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end scroll-content -->
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <div class="nav-item active">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Home</span>
+    </div>
+    <div class="nav-item" onclick="showToast('ALERT LOG LOADED')">
+      <span class="nav-icon">📋</span>
+      <span class="nav-label">History</span>
+    </div>
+    <div class="nav-item" onclick="shareLocation()">
+      <span class="nav-icon">📍</span>
+      <span class="nav-label">Location</span>
+    </div>
+    <div class="nav-item" onclick="showToast('SETTINGS OPENED')">
+      <span class="nav-icon">⚙️</span>
+      <span class="nav-label">Settings</span>
+    </div>
+  </div>
+
+</div>
+<script src="script.js"></script>
+</body>
+</html>
